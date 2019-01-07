@@ -1,0 +1,98 @@
+---
+title: "Lab6"
+author: "rock"
+date: "12/3/2018"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+setwd("/Users/rockgu/Documents/math372/data")
+hitters <- read.csv(file = "hitters.csv", header = T)
+
+```
+```{r}
+#a
+set.seed(1)
+train <- sample(1:dim(hitters)[1], dim(hitters)[1]*(210/263))
+test <- (-train)
+
+
+
+
+X <- model.matrix(Salary ~ ., hitters)[,-1]
+y <- hitters$Salary
+
+
+
+
+```
+
+```{r}
+#b
+library(glmnet)
+grid <- 10^seq(10, -3, length=1000)
+ridge.mod <- glmnet(X[train,], y[train], alpha=0, lambda=grid)
+plot(ridge.mod, xvar = "lambda", label = TRUE)
+
+lasso.mod <- glmnet(X[train,], y[train], alpha=1, lambda=grid)
+plot(lasso.mod, xvar = "lambda", label = TRUE)
+````
+
+```{r}
+#c
+cv.out <- cv.glmnet(X[train,], y[train], alpha=0)
+plot(cv.out)
+bestlam.r <- cv.out$lambda.min
+bestlam.r
+predict(ridge.mod, s=bestlam.r, type = "coefficients")
+```
+
+```{r}
+#d
+cv.out <- cv.glmnet(X[train,], y[train], alpha=1)
+plot(cv.out)
+bestlam.l <- cv.out$lambda.min
+bestlam.l
+predict(lasso.mod, s=bestlam.l, type = "coefficients")[1:12,] #Best LASSO regression model
+
+```
+```{r}
+#e
+ridge.pred <- predict(ridge.mod, s=bestlam.r, newx=X[test,])
+sqrt(mean((ridge.pred - y[test])^2))
+
+
+lasso.pred <- predict(lasso.mod, s=bestlam.l, newx=X[test,])
+sqrt(mean((lasso.pred - y[test])^2))
+
+#The lasso regression model's RMSE is less than the ridge model's RMSE. The lasso regression model is better than ridge model 
+```
+```{r, warning= FALSE}
+
+#f
+
+
+
+ridge.pred <- predict(ridge.mod, s=bestlam.r, newx=X[test,])
+sqrt(mean((ridge.pred - y[test])^2))
+
+
+lasso.pred <- predict(lasso.mod, s=bestlam.l, newx=X[test,])
+sqrt(mean((lasso.pred - y[test])^2))
+
+n <- dim(hitters)[1]
+trn <- sample(x = c(rep(TRUE, round(210/263*n)), rep(FALSE, n-round(210/263*n))), size = n, replace = FALSE)
+train <- hitters[trn,]
+tst <- !trn 
+test <- hitters[tst,]
+modeD <- lm(Salary ~ AtBat + Hits + Walks + CAtBat + CRuns + CRBI + CWalks + Division + PutOuts + Assists, data = train)
+pred3 <- predict(object = modeD, newdata = test)
+RMSE3 <- sqrt(mean((test$Salary - pred3)^2))
+RMSE3
+
+#From the compare of all the RMSE, the lasso have a lowest the RMSE
+
+```

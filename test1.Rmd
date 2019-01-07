@@ -1,0 +1,121 @@
+---
+title: "Lab4"
+author: "rock"
+date: "10/26/2018"
+output: html_document
+---
+
+```{r}
+getwd()
+setwd("/Users/rockgu/Documents/math372/data")
+tree <- read.csv(file = "forestry.csv", header = T)
+```
+
+```{r}
+model_tree<-lm(area~height+caliper+htcal,data=tree)
+vif(model_tree)
+#summary(model_tree)
+```
+
+```{r}
+#a1
+X<- model.matrix(model_tree);
+
+H <- X %*% solve(t(X) %*% X) %*% t(X)
+h <- diag(H)
+st_Resid <- model_tree$residuals/(summary(model_tree)$sig*sqrt(1-h))
+plot(st_Resid,ylab = "Studentized Residuals",main = "Studentized Residuals vs. index")
+abline(h = 0, col = "red", lwd = 2)
+
+```
+```{r}
+#a2
+plot(x = model_tree$fitted.values, y = st_Resid, col = "darkblue", pch = 16, xlab = "Fitted Values", ylab = "Studentized Residuals", main = "Studentized Residuals vs. Fitted Values")
+abline(h = 0, col = "red", lwd = 2)
+```
+```{r}
+#a3
+hist(st_Resid, xlab = "Studentized Residuals", main = "Histogram of Studentized Residuals")
+```
+```{r}
+#a4
+qqnorm(st_Resid, pch = 16, main = "QQ-plot of Residuals")
+qqline(st_Resid, col = "red", lwd = 2)
+```
+```{r}
+#b1 No,the residual is not independent. There is more point in the right up position and the left down position
+#b2 No,the residual does not have a constant variance.The distribution of the point is more like funal 
+#b3 No,the residual does not have a normally distribution. It have a little bit left skew. 
+#b4 No,the residual has existence of a outlier. There is one big outlier on the right top position. 
+```
+```{r}
+#c
+st_Resid
+max_St<-max(st_Resid)
+max_St
+#the observation 29 has the largest Studentized residual.
+```
+```{r}
+#d
+library(MASS)
+hat<-hatvalues(model_tree)
+
+
+
+mean_hat<-mean(hat)
+
+count<-1
+h
+for(i in hat)
+{
+  if(i>mean_hat*2)
+  {
+    print(count)
+  }
+ count<-count+1
+}
+
+```
+
+```{r}
+#e
+D = cooks.distance(model_tree)
+plot(model_tree,which=4)
+```
+```{r}
+#f
+getwd()
+setwd("/Users/rockgu/Documents/math372/data")
+tree1 <- read.csv(file = "forestryE.csv", header = T)
+model_tree1<-lm(area~height+caliper+htcal,data=tree1)
+
+X<- model.matrix(model_tree1);
+H <- X %*% solve(t(X) %*% X) %*% t(X)
+h <- diag(H)
+st_Resid <- model_tree1$residuals/(summary(model_tree1)$sig*sqrt(1-h))
+
+plot(st_Resid,ylab = "Studentized Residuals",main = "Studentized Residuals vs. index")
+abline(h = 0, col = "red", lwd = 2)
+
+#plot(model_tree1)
+plot(model_tree1,which=1)
+hist(st_Resid, xlab = "Studentized Residuals", main = "Histogram of Studentized Residuals")
+plot(model_tree1,which=2)
+
+```
+
+```{r}
+#g
+#yes. it become
+```
+
+```{r}
+#h
+model_tree2<- lm(log(area)~height+caliper+htcal,data=tree1)
+
+```
+
+```{r}
+plot(model_tree2,which=1)
+
+```
